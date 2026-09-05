@@ -1,0 +1,44 @@
+name: Build & Release EXE
+
+on:
+  push:
+    tags:
+      - "v*"   # trigger saat push tag seperti v1.0.0
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows-exe:
+    name: Build WordToPDF.exe
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller tkinterdnd2 docx2pdf
+
+      - name: Build EXE
+        run: python -m PyInstaller word_to_pdf.spec --clean --noconfirm
+
+      - name: Upload EXE as Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/WordToPDF.exe
+          body: |
+            ## Word to PDF Converter ${{ github.ref_name }}
+
+            ### Download
+            - **WordToPDF.exe** – Langsung double-click, tidak perlu install Python
+
+            ### Syarat
+            Install salah satu backend:
+            - Microsoft Word (Windows/macOS)
+            - [LibreOffice](https://www.libreoffice.org/download/) (semua platform)

@@ -1,131 +1,85 @@
-# 📄 Word to PDF Converter
+# Word to PDF Converter
 
-> Convert `.doc` and `.docx` files to PDF from the command line or import as a Python library.
-
----
-
-## ✨ Features
-
-- **Single file** or **batch directory** conversion
-- **Multiple backends** — automatically picks the best one available:
-  | Backend | Platform | Requires |
-  |---|---|---|
-  | `docx2pdf` | Windows / macOS | Microsoft Word |
-  | `libreoffice` | Linux / macOS / Windows | LibreOffice |
-  | `pypandoc` | Cross-platform | Pandoc binary |
-- **Recursive** directory scanning
-- Clean CLI with helpful flags
-- Importable Python API
+Aplikasi untuk mengonversi file `.doc` dan `.docx` ke PDF.
+Tersedia sebagai **desktop app** (drag & drop) dan **CLI**.
 
 ---
 
-## 🚀 Installation
+## Untuk Pengguna Umum (tanpa install Python)
 
-### 1. Clone the repo
+### Download .exe langsung
+
+1. Buka halaman **[Releases](https://github.com/Ajisuryoalam/word-to-pdf/releases)**
+2. Download file **`WordToPDF.exe`** dari versi terbaru
+3. Double-click � langsung bisa dipakai, tidak perlu install apapun
+
+> **Catatan:** Anda tetap perlu menginstall salah satu backend konversi:
+> - **Windows:** Install [Microsoft Word](https://www.microsoft.com/microsoft-365) atau [LibreOffice](https://www.libreoffice.org/download/)
+> - **Linux/macOS:** Install [LibreOffice](https://www.libreoffice.org/download/)
+
+---
+
+## Untuk Developer (clone & run)
+
+### 1. Clone repo
 
 ```bash
-git clone https://github.com/<your-username>/word-to-pdf.git
+git clone https://github.com/Ajisuryoalam/word-to-pdf.git
 cd word-to-pdf
 ```
 
-### 2. Install Python dependencies
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Install a conversion backend
+### 3. Install backend konversi (pilih salah satu)
 
-Choose **one or more**:
+| Backend | Platform | Cara Install |
+|---|---|---|
+| `docx2pdf` | Windows/macOS | `pip install docx2pdf` + MS Word |
+| LibreOffice | Semua | [libreoffice.org](https://www.libreoffice.org) |
+| `pypandoc` | Semua | `pip install pypandoc` + `pypandoc.download_pandoc()` |
 
-#### Option A – `docx2pdf` (Windows / macOS, needs Microsoft Word)
-
-```bash
-pip install docx2pdf
-```
-
-#### Option B – LibreOffice (cross-platform, recommended for Linux)
+### 4. Jalankan
 
 ```bash
-# Ubuntu / Debian
-sudo apt install libreoffice
+# Desktop GUI (drag & drop)
+python gui_app.py
 
-# macOS
-brew install --cask libreoffice
+# CLI � satu file
+python converter.py laporan.docx
 
-# Windows: download from https://www.libreoffice.org/
-```
-
-#### Option C – pypandoc (needs Pandoc)
-
-```bash
-pip install pypandoc
-# Install pandoc binary:
-python -c "import pypandoc; pypandoc.download_pandoc()"
+# CLI � seluruh folder
+python converter.py -d ./dokumen -o ./hasil
 ```
 
 ---
 
-## 🖥️ Usage
+## Build .exe Sendiri
 
-### Single file
-
-```bash
-python converter.py report.docx
-python converter.py report.docx -o output/report.pdf
+```powershell
+# Windows PowerShell
+.\build_exe.ps1
 ```
 
-### Batch conversion (entire folder)
-
-```bash
-python converter.py -d ./documents -o ./pdfs
-python converter.py -d ./documents --recursive
-```
-
-### Choose a specific backend
-
-```bash
-python converter.py report.docx --backend libreoffice
-python converter.py report.docx --backend docx2pdf
-python converter.py report.docx --backend pypandoc
-```
-
-### All options
-
-```
-usage: converter.py [-h] [-o OUTPUT] [-d DIRECTORY] [--output-dir OUTPUT_DIR]
-                    [-r] [--backend {auto,docx2pdf,libreoffice,pypandoc}]
-                    [input]
-
-Arguments:
-  input                    Input .docx/.doc file
-  -o, --output             Output PDF path
-  -d, --directory          Batch: convert all Word files in this directory
-  --output-dir             Output directory for batch mode
-  -r, --recursive          Recurse into subdirectories
-  --backend                Backend to use (default: auto)
-```
+File `.exe` akan tersimpan di folder `dist\WordToPDF.exe`.
 
 ---
 
-## 🐍 Python API
+## Fitur
 
-```python
-from converter import convert_file, batch_convert
-
-# Single file
-pdf_path = convert_file("report.docx")
-pdf_path = convert_file("report.docx", output_path="out/report.pdf", backend="libreoffice")
-
-# Batch
-results = batch_convert("./docs", output_dir="./pdfs", recursive=True)
-for src, dst, ok in results:
-    print(f"{'✓' if ok else '✗'} {src} → {dst}")
-```
+- Drag & drop file `.docx` / `.doc`
+- Konversi batch (banyak file sekaligus)
+- Pilih folder output
+- Progress bar per file
+- CLI & Python API
+- Otomatis pilih backend terbaik yang tersedia
 
 ---
 
-## 🧪 Running Tests
+## Menjalankan Tests
 
 ```bash
 pytest tests/ -v
@@ -133,23 +87,6 @@ pytest tests/ -v
 
 ---
 
-## 📋 Requirements
+## Lisensi
 
-- Python **3.8+**
-- At least one conversion backend (see above)
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License – see [LICENSE](LICENSE) for details.
+MIT License � lihat [LICENSE](LICENSE)
