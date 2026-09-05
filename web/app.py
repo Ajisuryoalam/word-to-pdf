@@ -22,7 +22,13 @@ from converter import convert_file
 UPLOAD_FOLDER = Path(__file__).parent / "uploads"
 OUTPUT_FOLDER = Path(__file__).parent / "outputs"
 ALLOWED_EXTENSIONS = {".doc", ".docx"}
-MAX_FILE_SIZE_MB = 20
+MAX_FILE_SIZE_MB = int(os.environ.get("MAX_FILE_MB", 20))
+
+# Backend: auto | docx2pdf | libreoffice | pypandoc
+# On Railway (Linux) default to libreoffice
+import platform as _platform
+DEFAULT_BACKEND = "libreoffice" if _platform.system() == "Linux" else "auto"
+BACKEND = os.environ.get("BACKEND", DEFAULT_BACKEND)
 
 UPLOAD_FOLDER.mkdir(exist_ok=True)
 OUTPUT_FOLDER.mkdir(exist_ok=True)
@@ -43,7 +49,7 @@ def allowed_file(filename: str) -> bool:
 def convert_job(job_id: str, input_path: str, output_path: str):
     """Background thread: convert and update job status."""
     try:
-        convert_file(input_path, output_path)
+        convert_file(input_path, output_path, backend=BACKEND)
         with jobs_lock:
             jobs[job_id]["status"] = "done"
             jobs[job_id]["pdf_path"] = output_path
