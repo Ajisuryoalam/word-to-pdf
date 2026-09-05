@@ -1,0 +1,446 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Word to PDF Converter</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      color: #e2e8f0;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 24px;
+      padding: 40px;
+      width: 100%;
+      max-width: 540px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+    }
+
+    .logo { font-size: 48px; text-align: center; margin-bottom: 8px; }
+
+    h1 {
+      text-align: center;
+      font-size: 1.7rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin-bottom: 32px;
+    }
+
+    /* Drop zone */
+    #drop-zone {
+      border: 2px dashed rgba(167,139,250,0.5);
+      border-radius: 16px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      background: rgba(167,139,250,0.04);
+      position: relative;
+    }
+    #drop-zone:hover, #drop-zone.drag-over {
+      border-color: #a78bfa;
+      background: rgba(167,139,250,0.12);
+      transform: scale(1.01);
+    }
+    #drop-zone .dz-icon { font-size: 44px; margin-bottom: 12px; display: block; }
+    #drop-zone .dz-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 6px;
+    }
+    #drop-zone .dz-sub { font-size: 0.82rem; color: #64748b; }
+    #file-input { display: none; }
+
+    /* File info */
+    #file-info {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-top: 16px;
+    }
+    #file-info .fi-icon { font-size: 28px; flex-shrink: 0; }
+    #file-info .fi-name {
+      flex: 1;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #c4b5fd;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #file-info .fi-size { font-size: 0.78rem; color: #64748b; }
+    #btn-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #ef4444;
+      font-size: 1.1rem;
+      padding: 4px;
+    }
+
+    /* Convert button */
+    #btn-convert {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: white;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: all 0.2s;
+    }
+    #btn-convert:hover:not(:disabled) {
+      background: linear-gradient(135deg, #6d28d9, #4338ca);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(124,58,237,0.5);
+    }
+    #btn-convert:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Progress area */
+    #progress-area {
+      display: none;
+      margin-top: 24px;
+    }
+
+    .progress-bar-bg {
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      height: 8px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #7c3aed, #60a5fa);
+      width: 0%;
+      transition: width 0.4s ease;
+      animation: shimmer 1.5s infinite;
+      background-size: 200% 100%;
+    }
+    @keyframes shimmer {
+      0%   { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    #status-text {
+      text-align: center;
+      font-size: 0.88rem;
+      color: #94a3b8;
+    }
+
+    /* Result */
+    #result-area {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 24px;
+      text-align: center;
+    }
+    #result-area .res-icon { font-size: 48px; }
+    #result-area .res-msg { font-size: 1rem; font-weight: 600; color: #86efac; }
+    #btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: white;
+      padding: 12px 28px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+    #btn-download:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(16,185,129,0.4);
+    }
+    #btn-new {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #94a3b8;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    #btn-new:hover { border-color: #a78bfa; color: #a78bfa; }
+
+    /* Error */
+    #error-area {
+      display: none;
+      margin-top: 24px;
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    #error-area .err-icon { font-size: 28px; margin-bottom: 6px; }
+    #error-area .err-msg { color: #fca5a5; font-size: 0.88rem; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 28px 0 0;
+      color: #334155;
+      font-size: 0.78rem;
+    }
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .info-item {
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+    .info-item .ii-icon { font-size: 20px; margin-bottom: 4px; }
+    .info-item .ii-label { font-size: 0.72rem; color: #64748b; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">📄</div>
+  <h1>Word to PDF</h1>
+  <p class="subtitle">Konversi file .doc / .docx ke PDF secara online</p>
+
+  <!-- Upload area -->
+  <div id="upload-area">
+    <div id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <span class="dz-icon">☁️</span>
+      <p class="dz-title">Drag & drop file di sini</p>
+      <p class="dz-sub">atau klik untuk pilih file • .doc / .docx • maks. 20 MB</p>
+      <input type="file" id="file-input" accept=".doc,.docx" />
+    </div>
+
+    <div id="file-info">
+      <span class="fi-icon">📝</span>
+      <div>
+        <div class="fi-name" id="fi-name">-</div>
+        <div class="fi-size" id="fi-size">-</div>
+      </div>
+      <button id="btn-remove" title="Hapus">✕</button>
+    </div>
+
+    <button id="btn-convert" disabled>Konversi ke PDF</button>
+  </div>
+
+  <!-- Progress -->
+  <div id="progress-area">
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+    <p id="status-text">Mengunggah file...</p>
+  </div>
+
+  <!-- Result -->
+  <div id="result-area">
+    <div class="res-icon">✅</div>
+    <p class="res-msg">PDF berhasil dibuat!</p>
+    <a id="btn-download" href="#">⬇ Download PDF</a>
+    <button id="btn-new" onclick="resetApp()">Konversi file lain</button>
+  </div>
+
+  <!-- Error -->
+  <div id="error-area">
+    <div class="err-icon">❌</div>
+    <p class="err-msg" id="err-msg">Terjadi kesalahan.</p>
+    <button id="btn-new2" onclick="resetApp()" style="margin-top:10px;background:none;border:1px solid rgba(255,255,255,0.1);color:#94a3b8;padding:8px 18px;border-radius:8px;cursor:pointer;">Coba lagi</button>
+  </div>
+
+  <div class="divider">Fitur</div>
+  <div class="info-grid">
+    <div class="info-item">
+      <div class="ii-icon">🔒</div>
+      <div class="ii-label">File dihapus otomatis</div>
+    </div>
+    <div class="info-item">
+      <div class="ii-icon">⚡</div>
+      <div class="ii-label">Konversi cepat</div>
+    </div>
+    <div class="info-item">
+      <div class="ii-icon">📱</div>
+      <div class="ii-label">Responsif di HP</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const dropZone  = document.getElementById("drop-zone");
+  const fileInput = document.getElementById("file-input");
+  const fileInfo  = document.getElementById("file-info");
+  const btnConvert = document.getElementById("btn-convert");
+  const uploadArea = document.getElementById("upload-area");
+  const progressArea = document.getElementById("progress-area");
+  const progressFill = document.getElementById("progress-fill");
+  const statusText   = document.getElementById("status-text");
+  const resultArea   = document.getElementById("result-area");
+  const btnDownload  = document.getElementById("btn-download");
+  const errorArea    = document.getElementById("error-area");
+  const errMsg       = document.getElementById("err-msg");
+
+  let selectedFile = null;
+  let pollInterval = null;
+
+  // Drag & drop
+  dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+  dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+  dropZone.addEventListener("drop", e => {
+    e.preventDefault();
+    dropZone.classList.remove("drag-over");
+    const f = e.dataTransfer.files[0];
+    if (f) setFile(f);
+  });
+
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files[0]) setFile(fileInput.files[0]);
+  });
+
+  document.getElementById("btn-remove").addEventListener("click", e => {
+    e.stopPropagation();
+    clearFile();
+  });
+
+  function setFile(f) {
+    const ext = f.name.split(".").pop().toLowerCase();
+    if (!["doc", "docx"].includes(ext)) {
+      alert("Hanya file .doc dan .docx yang diizinkan!");
+      return;
+    }
+    if (f.size > 20 * 1024 * 1024) {
+      alert("Ukuran file maksimum 20 MB!");
+      return;
+    }
+    selectedFile = f;
+    document.getElementById("fi-name").textContent = f.name;
+    document.getElementById("fi-size").textContent = (f.size / 1024).toFixed(1) + " KB";
+    fileInfo.style.display = "flex";
+    btnConvert.disabled = false;
+  }
+
+  function clearFile() {
+    selectedFile = null;
+    fileInput.value = "";
+    fileInfo.style.display = "none";
+    btnConvert.disabled = true;
+  }
+
+  btnConvert.addEventListener("click", async () => {
+    if (!selectedFile) return;
+    uploadArea.style.display = "none";
+    progressArea.style.display = "block";
+    setProgress(20, "Mengunggah file...");
+
+    const fd = new FormData();
+    fd.append("file", selectedFile);
+
+    try {
+      const res = await fetch("/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) { showError(data.error || "Upload gagal"); return; }
+
+      setProgress(50, "Mengonversi ke PDF...");
+      pollStatus(data.job_id);
+    } catch (e) {
+      showError("Gagal terhubung ke server: " + e.message);
+    }
+  });
+
+  function pollStatus(jobId) {
+    let dots = 0;
+    pollInterval = setInterval(async () => {
+      dots = (dots + 1) % 4;
+      statusText.textContent = "Mengonversi ke PDF" + ".".repeat(dots + 1);
+      try {
+        const res = await fetch(`/status/${jobId}`);
+        const data = await res.json();
+        if (data.status === "done") {
+          clearInterval(pollInterval);
+          setProgress(100, "Selesai!");
+          setTimeout(() => showResult(jobId, data.filename), 500);
+        } else if (data.status === "error") {
+          clearInterval(pollInterval);
+          showError(data.error || "Konversi gagal");
+        }
+      } catch (e) {
+        clearInterval(pollInterval);
+        showError("Gagal mengecek status: " + e.message);
+      }
+    }, 1200);
+  }
+
+  function setProgress(pct, text) {
+    progressFill.style.width = pct + "%";
+    statusText.textContent = text;
+  }
+
+  function showResult(jobId, filename) {
+    progressArea.style.display = "none";
+    resultArea.style.display = "flex";
+    btnDownload.href = `/download/${jobId}`;
+    btnDownload.download = filename + ".pdf";
+  }
+
+  function showError(msg) {
+    progressArea.style.display = "none";
+    errorArea.style.display = "block";
+    errMsg.textContent = msg;
+  }
+
+  function resetApp() {
+    clearInterval(pollInterval);
+    uploadArea.style.display = "block";
+    progressArea.style.display = "none";
+    resultArea.style.display = "none";
+    errorArea.style.display = "none";
+    clearFile();
+    setProgress(0, "");
+  }
+</script>
+</body>
+</html>
