@@ -1,0 +1,12 @@
+# Word to PDF Converter – Python dependencies
+# Install with: pip install -r requirements.txt
+
+# ── Option A: Windows / macOS (requires Microsoft Word installed) ──
+docx2pdf>=0.1.8
+
+# ── Option B: Cross-platform via pypandoc ──
+pypandoc>=1.13
+
+# ── Testing ──
+pytest>=8.0
+pytest-cov>=5.0
